@@ -1,0 +1,38 @@
+{
+  "name": "yargs-config",
+  "version": "0.0.1",
+  "description": "Configuration wrapper to simplify creation of yargs cli apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha",
+    "eslint": "eslint ./"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roman-spiridonov/yargs-config.git"
+  },
+  "keywords": [
+    "cli",
+    "yargs",
+    "configuration",
+    "config"
+  ],
+  "author": "Roman Spiridonov <romars@phystech.edu>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/roman-spiridonov/yargs-config/issues"
+  },
+  "homepage": "https://github.com/roman-spiridonov/yargs-config#readme",
+  "dependencies": {
+    "yargs": "^8.0.2"
+  },
+  "devDependencies": {
+    "chai": "^4.1.1",
+    "eslint": "^4.5.0",
+    "mocha": "^3.5.0",
+    "sinon": "^3.2.1"
+  },
+  "directories": {
+    "test": "test"
+  }
+}
