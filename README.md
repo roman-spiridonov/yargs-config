@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/roman-spiridonov/yargs-config.svg?branch=master)](https://travis-ci.org/roman-spiridonov/yargs-config)
+
 Configuration object wrapper for nested configs with yargs integration.
 
 Features:

@@ -4,4 +4,4 @@
 "use strict";
 
 const Config = require('./config').Config;
-module.exports = Config;
+exports.Config = Config;
