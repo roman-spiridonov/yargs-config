@@ -1,6 +1,6 @@
 {
   "name": "yargs-config",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Configuration wrapper to simplify creation of yargs cli apps",
   "main": "index.js",
   "scripts": {
