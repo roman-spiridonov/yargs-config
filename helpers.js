@@ -31,6 +31,8 @@ exports.mergeDeep = function mergeDeep(target, skipFunc, ...sources) {
             if (this.isObject(source[key])) {
                 if (!target[key]) Object.assign(target, {[key]: {}});
                 hasSkipFunction ? this.mergeDeep(target[key], skipFunc, source[key]) : this.mergeDeep(target[key], source[key]);
+            } else if (Array.isArray(source[key])) {  // target will be a deep copy of source array
+                target[key] = source[key].slice();
             } else if (source[key] !== undefined) {  // do not copy undefined values
                 Object.assign(target, {[key]: source[key]});
             }

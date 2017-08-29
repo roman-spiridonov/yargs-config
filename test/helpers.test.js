@@ -71,7 +71,27 @@ describe("Helpers", function () {
                 a: 2,
                 nested: {foo: 'new bar', nested: {foo: 'bar'}},
             });
+        });
 
+        it("deep copies and replaces arrays", function() {
+            let testObj = {array: [1]};
+            let mergedObj = {array: [2]};
+
+            helpers.mergeDeep(testObj, mergedObj);
+
+            expect(testObj.array).eql([2]);
+            expect(testObj.array).to.not.equal(mergedObj.array);  // deep copy?
+        });
+
+        it("mutates only the first object in the chain of objects", function() {
+            let obj1 = {a: 1};
+            let obj2 = {a: 2};
+            let obj3 = {a: 3};
+
+            helpers.mergeDeep(obj1, obj2, obj3);
+
+            expect(obj1).to.eql({a: 3});
+            expect(obj2).to.eql({a: 2});
         });
     });
 });

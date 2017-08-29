@@ -149,4 +149,14 @@ describe("Config", function () {
         })
     });
 
+    describe("Bug fixes", function() {
+        it("does not have side effects when mutating defaults", function() {
+            const defaults = {array: [[1, 2]]};
+            let config = new Config(defaults, defaults);
+
+            config.array.push([3]);
+            expect(config.array).to.eql([[1, 2], [3]]);
+            expect(config._defaults.array).to.eql([[1, 2]]);
+        });
+    });
 });
