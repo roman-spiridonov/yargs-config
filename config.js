@@ -40,18 +40,17 @@ _p.getDefault = function (propStr) {
  * Parse meta information for a config property in a format like "formula.output" and return its ref.
  */
 _p._getMeta = function (propStr, target = this) {
-    // add defaults to yargs meta
+    // add defaults values from config to yargs meta
     let meta = this._getPropRef(propStr, target.meta);
-    let config = this._getPropRef(propStr, target);
+    let config = this.getDefault(propStr);
 
+    // convert all props to the form of { default: ..., type: ... }
     config = this._normalizeMeta(config);
     meta = this._normalizeMeta(meta);
-    helpers.mergeDeep(meta, (targetProp, sourceProp) => {
-        // do not create new object properties on target
-        if(helpers.isObject(sourceProp) && !targetProp) return true;
-    }, config);
 
-    return meta;
+    helpers.mergeDeep(config, meta);
+
+    return config;
 };
 
 
@@ -62,16 +61,37 @@ _p._getMeta = function (propStr, target = this) {
  */
 _p._normalizeMeta = function (config) {
     function _isMetaProp(prop) {
-        return !!(prop.desc && prop.type);
+        return !!(prop.type);
     }
+
+    delete config.meta;
 
     // make plain object, do not plainify already prepared meta props
     let res = helpers.plainify(config, _isMetaProp);
 
-    // wrap in {default: ...}
+    // determine default value and type
     for (let key of Object.keys(res)) {
-        if (_isMetaProp(res[key])) continue;
-        res[key] = {default: res[key]};
+        let type;
+        if(typeof res[key] === 'string') {
+            type = 'string';
+        } else if(typeof res[key] === 'number') {
+            type = 'number';
+        } else if(typeof res[key] === 'boolean') {
+            type = 'boolean';
+        } else if(Array.isArray(res[key])) {
+            type = 'array';
+        } else if(typeof res[key] === 'function') {
+            type = 'function';
+        } else {
+            type = undefined;
+        }
+
+        // if type is undefined, rely on user provided meta information
+        if(res[key] === null || type === 'function') {
+            delete res[key];
+        } else if(type) {
+            res[key] = {default: res[key], type: type};
+        }
     }
 
     return res;
@@ -92,7 +112,7 @@ _p.getMetaYargsObj = function (propStr) {
  * @param {Object} target - Object to look at
  */
 _p._getPropRef = function (propStr, target = this) {
-    if (propStr === null || propStr === '') {
+    if (!propStr || propStr === '') {
         return target;
     }
 

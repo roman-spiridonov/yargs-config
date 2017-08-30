@@ -103,20 +103,81 @@ describe("Config", function () {
         it("returns part of meta object with parameter descriptions for yargs.usage options", function () {
             let config = new Config(overrides, defaults);
             // expect(config.getMetaYargsObj('nested.nested')).to.eql(defaults.meta.nested.nested);
-            expect(config.getMetaYargsObj('')).to.eql({
+            expect(config.getMetaYargsObj()).to.eql({
                 foo: {desc: 'Some description', type: 'string', alias: 'f', default: 'bar'},
                 'nested.foo': {desc: 'Some description', type: 'string', default: 'bar'},
                 'nested.nested.foo': {desc: 'Some description', type: 'string', default: 'bar'},
                 'nested.nested.array': {desc: 'Some description', type: 'array', alias: 'a', default: [1, 2]}
             });
         });
+
+        it("automatically fills in the type and default value of the property", function() {
+            let defaultsTest = {
+                str: 'string',
+                num: 100,
+                arr: [1, 2],
+                bool: true,
+                nested: {
+                    val11: null,
+                    val12: null,
+                    val21: undefined,
+                    val22: undefined,
+                    val3: i => i+1
+                },
+                meta: {
+                    nested: {
+                        val12: {
+                            default: '',
+                            type: 'string'
+                        },
+                        val22: {
+                            default: '',
+                            type: 'string'
+                        }
+                    }
+                }
+            };
+            let config = new Config({}, defaultsTest);
+
+            expect(config.getMetaYargsObj()).to.eql({
+                str: {
+                    default: 'string',
+                    type: "string"
+                },
+                num: {
+                    default: 100,
+                    type: "number"
+                },
+                arr: {
+                    default: [1, 2],
+                    type: "array"
+                },
+                bool: {
+                    default: true,
+                    type: "boolean"
+                },
+                'nested.val12': {
+                    default: '',
+                    type: 'string'
+                },
+                'nested.val22': {
+                    default: '',
+                    type: 'string'
+                }
+            });
+        });
+
+        // it("supports short descriptions in meta", function() {
+        //
+        // });
     });
 
     describe("_normalizeMeta", function () {
         it("wraps plain object keys in { default: ... }", function () {
             let testObj = {foo: 'bar', someKey: true, someArray: [1, 2]};
             let res = Config.prototype._normalizeMeta(testObj);
-            expect(res).to.eql({foo: {default: 'bar'}, someKey: {default: true}, someArray: {default: [1, 2]}});
+            expect(res).to.eql({foo: {default: 'bar', type: 'string'}, someKey: {default: true, type: 'boolean'},
+                someArray: {default: [1, 2], type: 'array'}});
             expect(res).to.not.equal(testObj);
         });
 
@@ -130,9 +191,9 @@ describe("Config", function () {
             let testObj = {nested: {foo: 'bar', nested: {foo: [1, 2]}}, foo: 'bar'};
             let res = Config.prototype._normalizeMeta(testObj);
             expect(res).to.eql({
-                'nested.foo': {default: 'bar'},
-                'nested.nested.foo': {default: [1, 2]},
-                'foo': {default: 'bar'}
+                'nested.foo': {default: 'bar', type: 'string'},
+                'nested.nested.foo': {default: [1, 2], type: 'array'},
+                'foo': {default: 'bar', type: 'string'}
             });
         });
 
