@@ -65,7 +65,9 @@ describe("Helpers", function () {
         it("can skip copying properties which are undefined on target by calling proper callback", function () {
             let testObj = {a: 1, nested: {nested: {foo: 'bar'}, foo: 'bar'}};
             let mergedObj = {a: 2, b: 1, nested: {foo: 'new bar', nested: {newfoo: 'bar'}}};
-            helpers.mergeDeep(testObj, (targetProp) => (targetProp === undefined), mergedObj);
+            helpers.mergeDeep(testObj, mergedObj, {
+                skipFunc: (targetProp) => (targetProp === undefined)
+            });
             // new props should not be created - only existing props are to be updated
             expect(testObj).to.eql({
                 a: 2,
@@ -92,6 +94,59 @@ describe("Helpers", function () {
 
             expect(obj1).to.eql({a: 3});
             expect(obj2).to.eql({a: 2});
+        });
+        it("creates a deep copy if mutate option is passed", function() {
+            let obj1 = {a: 1};
+            let obj2 = {a: 2, nested: {arr: [2], b: 2}};
+            let obj3 = {a: 3, nested: {arr: [3], b: null}};
+
+            let obj4 = helpers.mergeDeep(obj1, obj2, obj3, { mutate: false });
+
+            expect(obj1).to.eql({a: 1});
+            expect(obj2).to.eql({a: 2, nested: {arr: [2], b: 2}});
+            expect(obj3).to.eql({a: 3, nested: {arr: [3], b: null}});
+            expect(obj4).to.eql(obj3);
+            expect(obj4).to.not.equal(obj3);
+        });
+
+        it("arrayBehavior === 0 creates full copy of an array", function() {
+            let obj1 = {};
+            let obj2 = {a: [1, 2]};
+            helpers.mergeDeep(obj1, obj2, {arrayBehavior: 0});
+            expect(obj1).to.eql({a: [1, 2]});
+            expect(obj1.a).to.not.equal(obj2.a);
+            obj1.a.push(3);
+            expect(obj1.a).to.eql([1, 2, 3]);
+            expect(obj2.a).to.eql([1, 2]);
+        });
+        it("arrayBehavior === 1 appends to an array", function() {
+            let obj1 = {a: [1]};
+            let obj2 = {a: [1, 2]};
+            helpers.mergeDeep(obj1, obj2, {arrayBehavior: 1});
+            expect(obj1).to.eql({a: [1, 1, 2]});
+            expect(obj1.a).to.not.equal(obj2.a);
+            obj1.a.push(3);
+            expect(obj1.a).to.eql([1, 1, 2, 3]);
+            expect(obj2.a).to.eql([1, 2]);
+        });
+        it("arrayBehavior === 1 works correctly when no array is in target[key]", function() {
+            let obj1 = {a: 1};
+            let obj2 = {a: 2, nested: {arr: [2], b: 3} };
+            let obj3 = {a: 3, nested: {arr: [3]}};
+
+            helpers.mergeDeep(obj1, obj2, obj3, {arrayBehavior: 1});
+
+            expect(obj1).to.eql({a: 3, nested: {arr: [2, 3], b: 3}});
+        });
+        it("arrayBehavior === 0 creates shallow copy of an array", function() {
+            let obj1 = {};
+            let obj2 = {a: [1, 2]};
+            helpers.mergeDeep(obj1, obj2, {arrayBehavior: 2});
+            expect(obj1).to.eql({a: [1, 2]});
+            expect(obj1.a).to.equal(obj2.a);
+            obj1.a.push(3);
+            expect(obj1.a).to.eql([1, 2, 3]);
+            expect(obj2.a).to.eql([1, 2, 3]);
         });
     });
 });

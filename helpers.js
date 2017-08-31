@@ -9,45 +9,85 @@ exports.isObject = function isObject(item) {
  * Mutable merge of nested objects.
  * Supports skipping of keys using skipFunc callback.
  * @param target {object}
- * @param [skipFunc] {function} - callback that gets current target and source properties and returns true if this copy operation should be skipped.
+ * @param source {...object} - comma-separated objects
+ * @param [options] {object}
+ * @param [options.arrayBehavior] {number} - a flag identifying behavior of deep merge for arrays:
+ * 0 (default) - replace with copy, 1 - append (push), 2 - replace with link (will mutate source).
+ * @param [options.skipFunc] {function} - function that gets current target and source properties and returns true if this copy operation should be skipped.
  * Note that target property can be undefined if it is a new property for target.
- * @param sources - comma-separated objects
- * @returns {*}
+ * @param [options.mutate] {boolean} - mutate target object? true (default) - yes, false - no, return a deep copy.
+ * @returns {object}
  */
-exports.mergeDeep = function mergeDeep(target, skipFunc, ...sources) {
-    let hasSkipFunction = true;
-    if (skipFunc && (typeof skipFunc !== 'function')) {
-        // first source is in place of skipFunc
-        sources.unshift(skipFunc);
-        hasSkipFunction = false;
+exports.mergeDeep = function mergeDeep(target) {
+    let arrayBehavior = 0, skipFunc,
+      hasOptions = false;
+    let sources = [].slice.call(arguments, 1),
+      len = sources.length;
+
+    if (!len) return target;
+
+    if (sources[len - 1] &&
+      typeof sources[len - 1].arrayBehavior === 'number' ||
+      typeof sources[len - 1].skipFunc === 'function' ||
+      typeof sources[len - 1].mutate === 'boolean') {  // if options provided
+
+        // create a deep copy of target if mutate options was passed and is false
+        if (sources[len - 1].mutate === false) {
+            target = this.mergeDeep({}, target);
+            sources[len - 1].mutate = true;  // already a deep copy
+        }
+
+        arrayBehavior = sources[len - 1].arrayBehavior || 0;
+        skipFunc = sources[len - 1].skipFunc;
+        if (--len === 0) return target;  // the only second argument was options
+        sources.pop();
+        hasOptions = true;
     }
-    if (!sources.length) return target;
+
     const source = sources.shift();
 
     if (this.isObject(target) && this.isObject(source)) {
         for (const key in source) {
-            if (hasSkipFunction && skipFunc(target[key], source[key])) continue;  // skip if necessary
-
-            if (this.isObject(source[key])) {
+            if (this.isObject(source[key])) { // source key is an object with props => recursion
                 if (!target[key]) Object.assign(target, {[key]: {}});
-                hasSkipFunction ? this.mergeDeep(target[key], skipFunc, source[key]) : this.mergeDeep(target[key], source[key]);
-            } else if (Array.isArray(source[key])) {  // target will be a deep copy of source array
-                target[key] = source[key].slice();
-            } else if (source[key] !== undefined) {  // do not copy undefined values
-                Object.assign(target, {[key]: source[key]});
+                hasOptions ? this.mergeDeep(target[key], source[key], {skipFunc, arrayBehavior}) :
+                  this.mergeDeep(target[key], source[key]);
+            } else {  // source key is a leaf
+                if (skipFunc && skipFunc(target[key], source[key])) continue;  // skip if necessary
+
+                if (Array.isArray(source[key])) {  // target will be a deep copy of source array
+                    switch (arrayBehavior) {
+                        case 1:
+                            if (!target[key]) Object.assign(target, {[key]: []});
+                            target[key] = target[key].concat(source[key]);
+                            break;
+                        case 2:
+                            target[key] = source[key];
+                            break;
+                        case 0:
+                        default:
+                            target[key] = source[key].slice();
+                            break;
+                    }
+                } else if (source[key] !== undefined) {  // do not copy undefined values
+                    Object.assign(target, {[key]: source[key]});
+                }
             }
         }
     }
 
+    if (hasOptions) sources.push({skipFunc, arrayBehavior});
     return this.mergeDeep(target, ...sources);
 };
 
 
 /**
- * Returns plain version of an object, where each nested key is converted to "deep.nested.key": value.
+ * Returns plain copy of an object, where each nested key is converted to "deep.nested.key": value.
  * @param target {object}
- * @param [condition] {function} - optional function that takes current key and returns true if key needs to be plainified (false, otherwise).
+ * @param [condition] {function} - optional function that takes current key and returns true
+ * if key does not need to be plainified (false, otherwise).
  * By default, all keys will be plainified.
+ * @returns {object}
  */
 exports.plainify = function plainify(target, condition) {
     let [objectName, parent, parentKeys, mutate] = [].slice.call(arguments, 2);

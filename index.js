@@ -4,4 +4,8 @@
 "use strict";
 
 const Config = require('./config').Config;
+const helpers = require('./helpers');
+
 exports.Config = Config;
+exports.mergeDeep = helpers.mergeDeep;
+exports.plainify = helpers.plainify;

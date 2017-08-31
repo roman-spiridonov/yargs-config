@@ -8,7 +8,7 @@ const helpers = require('./helpers');
 
 /**
  * Provides helper functions and meta descriptions for embedded configs.
- * @param config {object} - current configuration
+ * @param config {object} - current configuration (leave empty {} if you want all current values to equal defaults)
  * @param defaults {object} - default configuration
  * @constructor
  */
@@ -21,16 +21,29 @@ const _p = Config.prototype;
 
 /**
  * Add more config options (overrides repeated ones).
- * @param config {object}
- * @param defaults {object}
+ * @param config {object} - current config values to add
+ * @param defaults {object} - default config values to add (leave empty {} if you do not want to change default values)
+ * @param [options] {object}
+ * @param [options.arrayBehavior] {number} - a flag identifying behavior of deep merge for arrays:
+ * 0 (default) - replace with copy, 1 - append (push), 2 - replace with link (will mutate source).
+ * @param [options.skipFunc] {function} - function that gets current target and source properties and returns true if this copy operation should be skipped.
+ * Note that target property can be undefined if it is a new property for target.
+ * @returns {Config} resulting config (reference to this)
+ * @memberOf Config
  */
-_p.add = function (config, defaults = {}) {
-    helpers.mergeDeep(this, defaults, config);
-    helpers.mergeDeep(this._defaults, defaults);
+_p.add = function (config, defaults = {}, options) {
+    if(options && options.mutate === false) delete options.mutate;  // we always need to mutate this in next step
+    helpers.mergeDeep(this, defaults, config, options || {});
+    helpers.mergeDeep(this._defaults, defaults, options || {});
+
+    return this;
 };
 
 /**
  * Get the default value of a property in a format like "formula.output".
+ * @param {string} propStr - Reference to a property as a "." delimited string
+ * @returns {*} value of the property or undefined
+ * @memberOf Config
  */
 _p.getDefault = function (propStr) {
     return this._getPropRef(propStr, this._defaults);
@@ -38,6 +51,8 @@ _p.getDefault = function (propStr) {
 
 /**
  * Parse meta information for a config property in a format like "formula.output" and return its ref.
+ * @private
+ * @memberOf Config
  */
 _p._getMeta = function (propStr, target = this) {
     // add defaults values from config to yargs meta
@@ -56,8 +71,8 @@ _p._getMeta = function (propStr, target = this) {
 
 /**
  * Plainifies meta object and wraps values into { default: ... }.
- *
  * @private
+ * @memberOf Config
  */
 _p._normalizeMeta = function (config) {
     function _isMetaProp(prop) {
@@ -101,6 +116,8 @@ _p._normalizeMeta = function (config) {
 /**
  * Get the meta object in a format suitable for usage() function of yargs library.
  * @param {string[]} propStr - property object reference.
+ * @returns {object}
+ * @memberOf Config
  */
 _p.getMetaYargsObj = function (propStr) {
     return this._getMeta(propStr);
@@ -110,6 +127,8 @@ _p.getMetaYargsObj = function (propStr) {
  * Parse config property in a format like "formula.output" and return prop ref.
  * @param {string} propStr - Reference to a property as a "." delimited string
  * @param {Object} target - Object to look at
+ * @private
+ * @memberOf Config
  */
 _p._getPropRef = function (propStr, target = this) {
     if (!propStr || propStr === '') {
@@ -131,16 +150,10 @@ _p._getPropRef = function (propStr, target = this) {
 };
 
 /**
- * @callback Config~executeCallback
- * @param {Error|null} err - returns error as a first argument in case it occurred, null if everything was ok.
- * @param {string} data - input data for a script
- * @param {object} argv - yargs object (add app-specific instructions)
- */
-
-/**
  * Starts command-line application with yargs, supporting piped inputs.
- * @param propStr {string} - where to look for settings (e.g. inside 'formula' property)
- * @param cb {Config~executeCallback} - calls when done
+ * @param propStr {string} - where to look for settings (e.g. inside 'formula' property); leave empty to use whole config
+ * @param cb {Config~runFromCmdCallback} - calls when done
+ * @memberOf Config
  */
 _p.runFromCmd = function (propStr, cb) {
     let self = this;
@@ -165,7 +178,7 @@ _p.runFromCmd = function (propStr, cb) {
     function execute(data) {
         let argv = require('yargs');
         if (!data) {
-            // require formula string as a first parameter
+            // require input string as a first parameter
             argv = argv.demandCommand(1);
         }
 
@@ -177,6 +190,12 @@ _p.runFromCmd = function (propStr, cb) {
           .argv
         ;
 
+        /**
+         * @callback Config~runFromCmdCallback
+         * @param {Error|null} err - returns error as a first argument in case it occurred, null if everything was ok
+         * @param {string} data - input data for a script
+         * @param {object} argv - yargs object (add app-specific instructions)
+         */
         cb(null, data || argv._[0], argv);
     }
 

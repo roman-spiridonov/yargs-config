@@ -78,7 +78,13 @@ describe("Config", function () {
                     delims: ["<math>"]
                 });
             });
-        })
+        });
+
+        it("supports merge options", function() {
+            let config = new Config({}, defaults);
+            config.add({nested: {nested: {array: [3]}}}, {}, { arrayBehavior: 1 });
+            expect(config.nested.nested.array).to.eql([1, 2, 3]);
+        });
     });
 
     describe("_getPropRef", function () {

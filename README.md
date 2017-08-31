@@ -8,6 +8,9 @@ Features:
 * Easy yargs initialization directly from config object
 * Plays nicely with [nconf](https://github.com/indexzero/nconf) (see recipe below)
 
+# JSDoc
+API docs are available on the [wiki](../../wiki).
+
 # Usage
 
 `yargs-config` is itself a configuration object. All your current settings are stored in it.
@@ -15,6 +18,9 @@ It keeps track of default options for you as well.
 
 ## Initialize with your default settings
 Notice the structure of `meta` object. It is used to populate `yargs` configuration.
+
+No need to explicitly fill out `type` and `default` fields of `meta` object as 
+the library can automatically populate them for you. 
 
 ```javascript
 const Config = require('yargs-config').Config;
@@ -27,12 +33,14 @@ let defaults = {
     meta: {
         yourOption: {
             desc: 'This is my option',
-            type: 'number'
+            alias: 'y'
+            // type: 'number'  // can be populated automatically
+            // default: 1  // can be populated automatically
         },
         nested: {
             nestedOption: {
-                desc: 'This is nested option',
-                type: 'string'
+                desc: 'This is nested option'
+                // type: 'string'  // can be populated automatically
             }
         }
     }
