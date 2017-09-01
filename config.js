@@ -60,8 +60,8 @@ _p._getMeta = function (propStr, target = this) {
     let config = this.getDefault(propStr);
 
     // convert all props to the form of { default: ..., type: ... }
-    config = this._normalizeMeta(config);
-    meta = this._normalizeMeta(meta);
+    config = this._normalizeMeta(config, false);
+    meta = this._normalizeMeta(meta, true);
 
     helpers.mergeDeep(config, meta);
 
@@ -71,10 +71,12 @@ _p._getMeta = function (propStr, target = this) {
 
 /**
  * Plainifies meta object and wraps values into { default: ... }.
+ * @param config {object} object containing nested meta objects to normalize
+ * @param [populateDesc] {boolean} if true, populates description instead of default field of meta object (false by default)
  * @private
  * @memberOf Config
  */
-_p._normalizeMeta = function (config) {
+_p._normalizeMeta = function (config, populateDesc = false) {
     function _isMetaProp(prop) {
         return !!(prop.type);
     }
@@ -105,7 +107,7 @@ _p._normalizeMeta = function (config) {
         if(res[key] === null || type === 'function') {
             delete res[key];
         } else if(type) {
-            res[key] = {default: res[key], type: type};
+            res[key] = {[populateDesc ? 'desc' : 'default']: res[key], type: type};
         }
     }
 

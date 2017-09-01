@@ -30,7 +30,7 @@ describe("Config", function () {
             nested: {
                 foo: {desc: 'Some description', type: 'string'},
                 nested: {
-                    foo: {desc: 'Some description', type: 'string'},
+                    foo: 'Some description',
                     array: {desc: 'Some description', type: 'array', alias: 'a'}
                 }
             }
@@ -205,7 +205,7 @@ describe("Config", function () {
 
         it("plainifies meta object properly", function() {
             let testObj = defaults.meta;
-            let res = Config.prototype._normalizeMeta(testObj);
+            let res = Config.prototype._normalizeMeta(testObj, true);
             expect(res).to.eql({
                 foo: {desc: 'Some description', type: 'string', alias: 'f'},
                 'nested.foo': {desc: 'Some description', type: 'string'},

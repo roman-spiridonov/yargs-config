@@ -20,7 +20,9 @@ It keeps track of default options for you as well.
 Notice the structure of `meta` object. It is used to populate `yargs` configuration.
 
 No need to explicitly fill out `type` and `default` fields of `meta` object as 
-the library can automatically populate them for you. 
+the library can automatically populate them for you. Also, you can enter just the description for a property `meta` object.
+
+If config property is not inside `meta` object, it will not be used in yargs.
 
 ```javascript
 const Config = require('yargs-config').Config;
@@ -38,10 +40,7 @@ let defaults = {
             // default: 1  // can be populated automatically
         },
         nested: {
-            nestedOption: {
-                desc: 'This is nested option'
-                // type: 'string'  // can be populated automatically
-            }
+            nestedOption: 'You can just enter the description'
         }
     }
 };
