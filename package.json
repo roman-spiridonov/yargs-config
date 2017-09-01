@@ -1,7 +1,7 @@
 {
   "name": "yargs-config",
   "version": "0.0.5",
-  "description": "Configuration wrapper to simplify creation of yargs cli apps",
+  "description": "Configuration object wrapper for nested configs with yargs integration",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
@@ -12,10 +12,11 @@
     "url": "git+https://github.com/roman-spiridonov/yargs-config.git"
   },
   "keywords": [
-    "cli",
-    "yargs",
+    "nested",
+    "config",
     "configuration",
-    "config"
+    "cli",
+    "yargs"
   ],
   "author": "Roman Spiridonov <romars@phystech.edu>",
   "license": "MIT",

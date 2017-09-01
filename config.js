@@ -17,8 +17,6 @@ function Config(config, defaults) {
     this.add(config, defaults);
 }
 
-const _p = Config.prototype;
-
 /**
  * Add more config options (overrides repeated ones).
  * @param config {object} - current config values to add
@@ -29,9 +27,8 @@ const _p = Config.prototype;
  * @param [options.skipFunc] {function} - function that gets current target and source properties and returns true if this copy operation should be skipped.
  * Note that target property can be undefined if it is a new property for target.
  * @returns {Config} resulting config (reference to this)
- * @memberOf Config
  */
-_p.add = function (config, defaults = {}, options) {
+Config.prototype.add = function (config, defaults = {}, options) {
     if(options && options.mutate === false) delete options.mutate;  // we always need to mutate this in next step
     helpers.mergeDeep(this, defaults, config, options || {});
     helpers.mergeDeep(this._defaults, defaults, options || {});
@@ -43,18 +40,16 @@ _p.add = function (config, defaults = {}, options) {
  * Get the default value of a property in a format like "formula.output".
  * @param {string} propStr - Reference to a property as a "." delimited string
  * @returns {*} value of the property or undefined
- * @memberOf Config
  */
-_p.getDefault = function (propStr) {
+Config.prototype.getDefault = function (propStr) {
     return this._getPropRef(propStr, this._defaults);
 };
 
 /**
  * Parse meta information for a config property in a format like "formula.output" and return its ref.
  * @private
- * @memberOf Config
  */
-_p._getMeta = function (propStr, target = this) {
+Config.prototype._getMeta = function (propStr, target = this) {
     // add defaults values from config to yargs meta
     let meta = this._getPropRef(propStr, target.meta);
     let config = this.getDefault(propStr);
@@ -74,9 +69,8 @@ _p._getMeta = function (propStr, target = this) {
  * @param config {object} object containing nested meta objects to normalize
  * @param [populateDesc] {boolean} if true, populates description instead of default field of meta object (false by default)
  * @private
- * @memberOf Config
  */
-_p._normalizeMeta = function (config, populateDesc = false) {
+Config.prototype._normalizeMeta = function (config, populateDesc = false) {
     function _isMetaProp(prop) {
         return !!(prop.type);
     }
@@ -120,9 +114,8 @@ _p._normalizeMeta = function (config, populateDesc = false) {
  * Get the meta object in a format suitable for usage() function of yargs library.
  * @param {string[]} propStr - property object reference.
  * @returns {object}
- * @memberOf Config
  */
-_p.getMetaYargsObj = function (propStr) {
+Config.prototype.getMetaYargsObj = function (propStr) {
     return this._getMeta(propStr);
 };
 
@@ -131,9 +124,8 @@ _p.getMetaYargsObj = function (propStr) {
  * @param {string} propStr - Reference to a property as a "." delimited string
  * @param {Object} target - Object to look at
  * @private
- * @memberOf Config
  */
-_p._getPropRef = function (propStr, target = this) {
+Config.prototype._getPropRef = function (propStr, target = this) {
     if (!propStr || propStr === '') {
         return target;
     }
@@ -155,12 +147,9 @@ _p._getPropRef = function (propStr, target = this) {
 /**
  * Starts command-line application with yargs, supporting piped inputs.
  * @param propStr {string} - where to look for settings (e.g. inside 'formula' property); leave empty to use whole config
- * @param cb {function} - calls when done
- * @property {Error|null} err - returns error as a first argument in case it occurred, null if everything was ok
- * @property {string} data - input data for a script
- * @property {object} argv - yargs object (add app-specific instructions)
+ * @param cb {Config~RunFromCmdCallback} - calls when done
  */
-_p.runFromCmd = function (propStr, cb) {
+Config.prototype.runFromCmd = function (propStr, cb) {
     let self = this;
 
     // Support piping
@@ -194,9 +183,14 @@ _p.runFromCmd = function (propStr, cb) {
         .argv
         ;
 
+        /**
+         * @callback Config~RunFromCmdCallback
+         * @property {Error|null} err - returns error as a first argument in case it occurred, null if everything was ok
+         * @property {string} data - input data for a script
+         * @property {object} argv - yargs object (add app-specific instructions)
+         */
         cb(null, data || argv._[0], argv);
     }
-
 };
 
 exports.Config = Config;

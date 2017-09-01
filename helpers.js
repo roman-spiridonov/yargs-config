@@ -6,7 +6,7 @@ exports.isObject = function isObject(item) {
 };
 
 /**
- * Mutable merge of nested objects.
+ * Deep merge of nested objects (mutates 1st argument by default0.
  * Supports skipping of keys using skipFunc callback.
  * @param target {object}
  * @param source {...object} - comma-separated objects

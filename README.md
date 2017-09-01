@@ -5,6 +5,7 @@ Configuration object wrapper for nested configs with yargs integration.
 Features:
 * Nested configs
 * Deep merge of config objects
+* Keeping track of defaults
 * Easy yargs initialization directly from config object
 * Plays nicely with [nconf](https://github.com/indexzero/nconf) (see recipe below)
 
@@ -109,4 +110,47 @@ module.exports.nconf = nconf;
 
 // manipulate default config (e.g. add new options for embedded modules)
 module.exports.defaults = defaultConfig;  
+```
+
+## Extras
+The module exports two useful functions which it uses internally: `mergeDeep()` and `plainify()`.
+See [API docs](../../wiki) for more information.
+
+```javascript
+const config = require('config-yargs');
+
+let obj1 = {
+    a: 1,
+    nested: {
+        arr: [1, 2]
+    }
+};
+
+let obj2 = {
+    a: 2,
+    nested: {
+        arr: [3],
+        foo: 'bar'
+    }
+};
+
+config.mergeDeep(obj1, obj2, {arrayBehavior: 1});
+/* obj1:
+{ 
+    a: 2, 
+    nested: {
+        arr: [1, 2, 3],
+        foo: 'bar'
+    }
+}
+*/
+
+let obj3 = config.plainify(obj2);
+/* obj3:
+{
+    a: 2, 
+    'nested.arr': [3],
+    'nested.foo': 'bar'
+}
+*/
 ```
