@@ -108,6 +108,7 @@ _p._normalizeMeta = function (config, populateDesc = false) {
             delete res[key];
         } else if(type) {
             res[key] = {[populateDesc ? 'desc' : 'default']: res[key], type: type};
+            if(populateDesc && type === 'string') delete res[key].type;  // type is misleading in this case
         }
     }
 
@@ -154,8 +155,10 @@ _p._getPropRef = function (propStr, target = this) {
 /**
  * Starts command-line application with yargs, supporting piped inputs.
  * @param propStr {string} - where to look for settings (e.g. inside 'formula' property); leave empty to use whole config
- * @param cb {Config~runFromCmdCallback} - calls when done
- * @memberOf Config
+ * @param cb {function} - calls when done
+ * @property {Error|null} err - returns error as a first argument in case it occurred, null if everything was ok
+ * @property {string} data - input data for a script
+ * @property {object} argv - yargs object (add app-specific instructions)
  */
 _p.runFromCmd = function (propStr, cb) {
     let self = this;
@@ -185,19 +188,12 @@ _p.runFromCmd = function (propStr, cb) {
         }
 
         argv = argv
-        .usage("Usage: $0 \"<your input>\" [options]", self.getMetaYargsObj(propStr))
-        .example("$0 \"your input\" [options]")
-        .example("echo \"your input\" | $0 [options]")
+        .usage("Usage: $0 <your input> [options]\nOr: echo <your input> | $0 [options]",
+          self.getMetaYargsObj(propStr))
         .help('h').alias('h', 'help')
-          .argv
+        .argv
         ;
 
-        /**
-         * @callback Config~runFromCmdCallback
-         * @param {Error|null} err - returns error as a first argument in case it occurred, null if everything was ok
-         * @param {string} data - input data for a script
-         * @param {object} argv - yargs object (add app-specific instructions)
-         */
         cb(null, data || argv._[0], argv);
     }
 
