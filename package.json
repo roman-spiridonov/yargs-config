@@ -1,6 +1,6 @@
 {
   "name": "yargs-config",
-  "version": "0.0.5",
+  "version": "1.1.1",
   "description": "Configuration object wrapper for nested configs with yargs integration",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/roman-spiridonov/yargs-config#readme",
   "dependencies": {
+    "nested-config": "^1.0.1",
     "yargs": "^8.0.2"
   },
   "devDependencies": {

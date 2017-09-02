@@ -3,9 +3,14 @@
  */
 "use strict";
 
-const Config = require('./config').Config;
-const helpers = require('./helpers');
+const
+    nc = require('nested-config'),
+    ConfigYargs = require('./config').ConfigYargs;
 
-exports.Config = Config;
-exports.mergeDeep = helpers.mergeDeep;
-exports.plainify = helpers.plainify;
+
+exports.ConfigYargs = ConfigYargs;
+exports.create = function(overrides, defaults) {
+    return new ConfigYargs(overrides, defaults);
+};
+exports.mergeDeep = nc.mergeDeep;
+exports.plainify = nc.plainify;

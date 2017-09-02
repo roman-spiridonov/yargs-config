@@ -1,9 +1,9 @@
 /**
  * Created by Roman Spiridonov <romars@phystech.edu> on 9/1/2017.
  */
-const Config = require('../../config').Config;
+const yc = require('../../index');
 
-let config = new Config({}, {
+let config = yc.create({}, {
     num: 1,
     nested: {
         arr: [1, 2]

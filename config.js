@@ -3,8 +3,10 @@
  */
 "use strict";
 
-const helpers = require('./helpers');
-
+const
+    util = require('util'),
+    nc = require('nested-config'),
+    Config = nc.Config;
 
 /**
  * Provides helper functions and meta descriptions for embedded configs.
@@ -12,53 +14,27 @@ const helpers = require('./helpers');
  * @param defaults {object} - default configuration
  * @constructor
  */
-function Config(config, defaults) {
-    this._defaults = {};
-    this.add(config, defaults);
+function ConfigYargs(config, defaults) {
+    Config.apply(this, arguments);
 }
 
-/**
- * Add more config options (overrides repeated ones).
- * @param config {object} - current config values to add
- * @param defaults {object} - default config values to add (leave empty {} if you do not want to change default values)
- * @param [options] {object}
- * @param [options.arrayBehavior] {number} - a flag identifying behavior of deep merge for arrays:
- * 0 (default) - replace with copy, 1 - append (push), 2 - replace with link (will mutate source).
- * @param [options.skipFunc] {function} - function that gets current target and source properties and returns true if this copy operation should be skipped.
- * Note that target property can be undefined if it is a new property for target.
- * @returns {Config} resulting config (reference to this)
- */
-Config.prototype.add = function (config, defaults = {}, options) {
-    if(options && options.mutate === false) delete options.mutate;  // we always need to mutate this in next step
-    helpers.mergeDeep(this, defaults, config, options || {});
-    helpers.mergeDeep(this._defaults, defaults, options || {});
-
-    return this;
-};
-
-/**
- * Get the default value of a property in a format like "formula.output".
- * @param {string} propStr - Reference to a property as a "." delimited string
- * @returns {*} value of the property or undefined
- */
-Config.prototype.getDefault = function (propStr) {
-    return this._getPropRef(propStr, this._defaults);
-};
+util.inherits(ConfigYargs, Config);
+ConfigYargs.prototype.constructor = ConfigYargs;
 
 /**
  * Parse meta information for a config property in a format like "formula.output" and return its ref.
  * @private
  */
-Config.prototype._getMeta = function (propStr, target = this) {
+ConfigYargs.prototype._getMeta = function (propStr, target = this) {
     // add defaults values from config to yargs meta
-    let meta = this._getPropRef(propStr, target.meta);
+    let meta = this.getPropRef(propStr, target.meta);
     let config = this.getDefault(propStr);
 
     // convert all props to the form of { default: ..., type: ... }
     config = this._normalizeMeta(config, false);
     meta = this._normalizeMeta(meta, true);
 
-    helpers.mergeDeep(config, meta);
+    nc.mergeDeep(config, meta);
 
     return config;
 };
@@ -70,7 +46,7 @@ Config.prototype._getMeta = function (propStr, target = this) {
  * @param [populateDesc] {boolean} if true, populates description instead of default field of meta object (false by default)
  * @private
  */
-Config.prototype._normalizeMeta = function (config, populateDesc = false) {
+ConfigYargs.prototype._normalizeMeta = function (config, populateDesc = false) {
     function _isMetaProp(prop) {
         return !!(prop.type);
     }
@@ -78,7 +54,7 @@ Config.prototype._normalizeMeta = function (config, populateDesc = false) {
     delete config.meta;
 
     // make plain object, do not plainify already prepared meta props
-    let res = helpers.plainify(config, _isMetaProp);
+    let res = nc.plainify(config, _isMetaProp);
 
     // determine default value and type
     for (let key of Object.keys(res)) {
@@ -115,33 +91,8 @@ Config.prototype._normalizeMeta = function (config, populateDesc = false) {
  * @param {string[]} propStr - property object reference.
  * @returns {object}
  */
-Config.prototype.getMetaYargsObj = function (propStr) {
+ConfigYargs.prototype.getMetaYargsObj = function (propStr) {
     return this._getMeta(propStr);
-};
-
-/**
- * Parse config property in a format like "formula.output" and return prop ref.
- * @param {string} propStr - Reference to a property as a "." delimited string
- * @param {Object} target - Object to look at
- * @private
- */
-Config.prototype._getPropRef = function (propStr, target = this) {
-    if (!propStr || propStr === '') {
-        return target;
-    }
-
-    let interimProps = propStr.split('.');
-    let res = target;
-    for (let i = 0; i < interimProps.length; i++) {
-        let prop = interimProps[i];
-        if (i === 0) {
-            res = target[prop];
-            continue;
-        }
-        res = res[prop];
-    }
-
-    return res;
 };
 
 /**
@@ -149,7 +100,7 @@ Config.prototype._getPropRef = function (propStr, target = this) {
  * @param propStr {string} - where to look for settings (e.g. inside 'formula' property); leave empty to use whole config
  * @param cb {Config~RunFromCmdCallback} - calls when done
  */
-Config.prototype.runFromCmd = function (propStr, cb) {
+ConfigYargs.prototype.runFromCmd = function (propStr, cb) {
     let self = this;
 
     // Support piping
@@ -193,4 +144,4 @@ Config.prototype.runFromCmd = function (propStr, cb) {
     }
 };
 
-exports.Config = Config;
+exports.ConfigYargs = ConfigYargs;
