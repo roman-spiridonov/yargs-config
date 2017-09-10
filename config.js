@@ -98,7 +98,7 @@ ConfigYargs.prototype.getMetaYargsObj = function (propStr) {
 /**
  * Starts command-line application with yargs, supporting piped inputs.
  * @param propStr {string} - where to look for settings (e.g. inside 'formula' property); leave empty to use whole config
- * @param cb {Config~RunFromCmdCallback} - calls when done
+ * @param cb {ConfigYargs~RunFromCmdCallback} - calls when done
  */
 ConfigYargs.prototype.runFromCmd = function (propStr, cb) {
     let self = this;
@@ -135,7 +135,7 @@ ConfigYargs.prototype.runFromCmd = function (propStr, cb) {
         ;
 
         /**
-         * @callback Config~RunFromCmdCallback
+         * @callback ConfigYargs~RunFromCmdCallback
          * @property {Error|null} err - returns error as a first argument in case it occurred, null if everything was ok
          * @property {string} data - input data for a script
          * @property {object} argv - yargs object (add app-specific instructions)
